@@ -9,12 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
-
 var rootCmd = &cobra.Command{
 	Use:   "dodo",
 	Short: "",
-	Long: `dodo is a Go-based command-line tool designed to make Git safer and easier for developers by solving pains...`,
+	Long:  `dodo is a Go-based command-line tool designed to make Git safer and easier for developers by solving pains...`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -32,5 +30,3 @@ func Execute() {
 func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
-
