@@ -82,7 +82,7 @@ func executePush(force bool, setUpstream string, args []string) error {
 		
 		// Check if current branch has upstream configured
 		branchConfig, exists := cfg.Branches[branchName]
-		if exists && branchConfig.Remote != "" {
+		if exists && branchConfig.Remote != "" && branchConfig.Merge != nil {
 			// Use upstream configuration
 			remoteName = branchConfig.Remote
 			remoteBranchName := branchConfig.Merge.Short()
