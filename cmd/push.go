@@ -137,8 +137,8 @@ func executePush(force bool, setUpstream string, args []string) error {
 	// If set-upstream was used, update the local config
 	if setUpstream != "" {
 		targetBranch := branchName
-		if len(args) > 0 {
-			targetBranch = args[0]
+		if len(args) > 1 {
+			targetBranch = args[1]
 		}
 		
 		// Set up the branch to track the remote branch
