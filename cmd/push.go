@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/spf13/cobra"
 )
 
@@ -18,11 +19,16 @@ var pushCmd = &cobra.Command{
 	Short: "Push changes/staged commits to the remote repository",
 	Long: `Push changes/staged commits to the remote repository.
 
+	Works like 'git push' - if the current branch has an upstream configured,
+	it will push to that upstream. Otherwise, it defaults to 'origin'.
+
 	Example:
 
-	dodo push
-	dodo push --force
-	dodo push --set-upstream origin main
+	dodo push                              # Push to upstream (if configured) or origin
+	dodo push origin                       # Push to origin remote
+	dodo push origin main                  # Push current branch to origin/main
+	dodo push --set-upstream origin main   # Push and set upstream tracking
+	dodo push --force                      # Force push (use with caution)
 
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -68,9 +74,25 @@ func executePush(force bool, setUpstream string, args []string) error {
 		remoteName = args[0]
 		refSpec = fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName)
 	} else {
-		// No args, use default remote (usually "origin")
-		remoteName = "origin"
-		refSpec = fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName)
+		// No args, check for upstream configuration first
+		cfg, err := repo.Config()
+		if err != nil {
+			return fmt.Errorf("failed to get repository config: %w", err)
+		}
+		
+		// Check if current branch has upstream configured
+		branchConfig, exists := cfg.Branches[branchName]
+		if exists && branchConfig.Remote != "" && branchConfig.Merge != nil {
+			// Use upstream configuration
+			remoteName = branchConfig.Remote
+			remoteBranchName := branchConfig.Merge.Short()
+			refSpec = fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, remoteBranchName)
+			fmt.Printf("Using upstream: %s/%s\n", remoteName, remoteBranchName)
+		} else {
+			// No upstream configured, use default remote (usually "origin")
+			remoteName = "origin"
+			refSpec = fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName)
+		}
 	}
 
 	// Handle set-upstream option
@@ -113,8 +135,35 @@ func executePush(force bool, setUpstream string, args []string) error {
 	fmt.Printf("Successfully pushed %s to %s\n", branchName, remoteName)
 
 	// If set-upstream was used, update the local config
-	if setUpstream != "" && len(args) > 0 {
-		fmt.Printf("Branch '%s' set up to track remote branch '%s' from '%s'\n", branchName, args[0], setUpstream)
+	if setUpstream != "" {
+		targetBranch := branchName
+		if len(args) > 1 {
+			targetBranch = args[1]
+		}
+		
+		// Set up the branch to track the remote branch
+		cfg, err := repo.Config()
+		if err != nil {
+			return fmt.Errorf("failed to get repository config: %w", err)
+		}
+		
+		// Create or update branch config
+		if cfg.Branches == nil {
+			cfg.Branches = make(map[string]*config.Branch)
+		}
+		
+		cfg.Branches[branchName] = &config.Branch{
+			Name:   branchName,
+			Remote: setUpstream,
+			Merge:  plumbing.ReferenceName("refs/heads/" + targetBranch),
+		}
+		
+		// Save the config
+		if err := repo.Storer.SetConfig(cfg); err != nil {
+			return fmt.Errorf("failed to set upstream configuration: %w", err)
+		}
+		
+		fmt.Printf("Branch '%s' set up to track remote branch '%s' from '%s'\n", branchName, targetBranch, setUpstream)
 	}
 
 	return nil
