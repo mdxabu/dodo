@@ -1,6 +1,5 @@
 /*
 Copyright © 2025 @mdxabu
-
 */
 package cmd
 
@@ -12,9 +11,9 @@ import (
 var hookCmd = &cobra.Command{
 	Use:   "hook",
 	Short: "",
-	Long: ``,
+	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		
+
 	},
 }
 
