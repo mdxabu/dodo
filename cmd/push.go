@@ -82,13 +82,13 @@ func executePush(force bool, setUpstream string, args []string) error {
 		
 		// Check if current branch has upstream configured
 		branchConfig, exists := cfg.Branches[branchName]
-		if exists && branchConfig.Remote != "" && branchConfig.Merge != nil {
-			// Use upstream configuration
-			remoteName = branchConfig.Remote
-			remoteBranchName := branchConfig.Merge.Short()
-			refSpec = fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, remoteBranchName)
-			fmt.Printf("Using upstream: %s/%s\n", remoteName, remoteBranchName)
-		} else {
+		if exists && branchConfig.Remote != "" && branchConfig.Merge != "" {
+		// Use upstream configuration
+		remoteName = branchConfig.Remote
+		remoteBranchName := branchConfig.Merge.Short()
+		refSpec = fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, remoteBranchName)
+		fmt.Printf("Using upstream: %s/%s\n", remoteName, remoteBranchName)
+	} else {
 			// No upstream configured, use default remote (usually "origin")
 			remoteName = "origin"
 			refSpec = fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName)
