@@ -4,8 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"log"
-
+	"github.com/mdxabu/dodo/internal/scanner"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +14,7 @@ var scanCmd = &cobra.Command{
 	Short: "",
 	Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Println("scan called")
+		scanner.Scan()
 	},
 }
 
